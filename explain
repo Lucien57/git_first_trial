@@ -1,0 +1,30 @@
+Given a character board, your goal is to find the target word in the board.
+
+The word can be constructed from letters of sequentially adjacent cells, where adjacent cells are horizontally or
+vertically neighboring. The same letter cell may not be used more than once.
+
+Return 'Yes!' or 'No!' as your answer. Any other answers shall be viewed invalid.
+
+Several examples following:
+Example1:
+Puzzle:   Target:
+A B C E   See
+S F C S
+A D E E
+
+Then the player should just return 'Yes!'.
+If the player returns 'No!', then the system shall return:
+Pity~ The relative position of the target word in the puzzle is:
+* * * *
+* * * S
+* * E E
+
+Example2:
+Puzzle:   Target:
+A B C E   Bee
+S F C S
+A D E E
+
+Then the player should just return 'No!'.
+If the player returns 'Yes!', then the system shall return:
+Pity~ There's actually no target word in the puzzle...
