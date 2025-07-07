@@ -23,11 +23,27 @@ class TickTackToe:
 
     # To judge whether the game ends.
     def is_end(self):
-        return True
+        for i in self.values:
+            if i[0] == i[1] == i[2] == 'o':return True,1
+            if i[0] == i[1] == i[2] == 'x':return True,-1
+        for column_index in range(3):
+            if self.values[0][column_index] == self.values[1][column_index] == self.values[2][column_index] == 'o':
+                return True,1
+            if self.values[0][column_index] == self.values[1][column_index] == self.values[2][column_index] == 'o':
+                return True,-1
+        if self.values[0][0] == self.values[1][1] == self.values[2][2] == 'o':return True,1
+        if self.values[0][0] == self.values[1][1] == self.values[2][2] == 'x': return True,-1
+        if self.values[0][2] == self.values[1][1] == self.values[2][0] == 'o': return True, 1
+        if self.values[0][2] == self.values[1][1] == self.values[2][0] == 'x': return True,-1
+        for i in range(3):
+            for j in range(3):
+                if self.values[i][j] == '-':return False,0
+        return True,0
+    # 1 for 'o' winning, -1 for 'x' winning, 0 for draw or a non-terminal state.
 
     # To give a score to the game state.
     def score(self):
-        if not self.is_end()[0]: return 0
+        return self.is_end()[1]
 
     # To print the current game state.
     def print_state(self):
