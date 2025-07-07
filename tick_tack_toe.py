@@ -45,7 +45,7 @@ class TickTackToe:
         for column_index in range(3):
             if self.values[0][column_index] == self.values[1][column_index] == self.values[2][column_index] == 'o':
                 return True,1
-            if self.values[0][column_index] == self.values[1][column_index] == self.values[2][column_index] == 'o':
+            if self.values[0][column_index] == self.values[1][column_index] == self.values[2][column_index] == 'x':
                 return True,-1
         if self.values[0][0] == self.values[1][1] == self.values[2][2] == 'o':return True,1
         if self.values[0][0] == self.values[1][1] == self.values[2][2] == 'x': return True,-1
@@ -64,11 +64,12 @@ class TickTackToe:
     # To print the current game state.
     def print_state(self):
         print('The current gameboard:')
-        print(' %s | %s | %s ' % (self.values[0][0], self.values[0][1], self.values[0][2]))
-        print('---|---|---')
-        print(' %s | %s | %s ' % (self.values[1][0], self.values[1][1], self.values[1][2]))
-        print('---|---|---')
-        print(' %s | %s | %s ' % (self.values[2][0], self.values[2][1], self.values[2][2]))
+        print('  0 | 1 | 2 ')
+        print('0 %s | %s | %s ' % (self.values[0][0], self.values[0][1], self.values[0][2]))
+        print(' ---|---|---')
+        print('1 %s | %s | %s ' % (self.values[1][0], self.values[1][1], self.values[1][2]))
+        print(' ---|---|---')
+        print('2 %s | %s | %s ' % (self.values[2][0], self.values[2][1], self.values[2][2]))
         if not self.is_end()[0]: print('Not ended yet...')
         else:
             print('The game ends!')
@@ -93,46 +94,57 @@ class TickTackToe:
 # Def a function, receiving a game: TickTackToe and a move(a point coordinate),
 # and return the next new_game: TickTackToe with the target point filled.
 def move(game:TickTackToe,decision:list)->TickTackToe:
-    result = copy.deepcopy(game)
+    new_values = copy.deepcopy(game.values)
     x = decision[0]; y = decision[1]
     if game.values[x][y] != '-':
         raise ValueError('Illegal move!')
     if game.agent_index == 0:
-        result.values[x][y] = 'o'
+        new_values[x][y] = 'o'
     elif game.agent_index == 1:
-        result.values[x][y] = 'x'
+        new_values[x][y] = 'x'
     else:
         raise ValueError('Undefined game state!')
-    return result
+    return TickTackToe(new_values)
+
+# Ahh create a new object!!
 
 # Test code for score assigning and the state printing.
 def score_print_test():
-    state = [['x','x','-'],['-','o','-'],['o','x','o']]
+    state = [['x','o','-'],['x','o','x'],['o','-','-']]
     game = TickTackToe(state)
     game.print_state()
-    print(game.get_legal_moves()) # Test: get legal moves.
+    print('Legal moves:',game.get_legal_moves()) # Test: get legal moves.
     decision = [0,2]
     new_game = move(game,decision)  # Test: generating a new game.
     new_game.print_state()
 
-score_print_test()
+# score_print_test()
 '''
-The intended output:
 The current gameboard:
- x | x | - 
----|---|---
- - | o | - 
----|---|---
- o | x | o 
+  0 | 1 | 2 
+0 x | o | - 
+ ---|---|---
+1 x | o | x 
+ ---|---|---
+2 o | - | - 
 Not ended yet...
-[[0, 2], [1, 0], [1, 2]]
+Legal moves: [[0, 2], [2, 1], [2, 2]]
+The current gameboard:
+  0 | 1 | 2 
+0 x | o | o 
+ ---|---|---
+1 x | o | x 
+ ---|---|---
+2 o | - | - 
+The game ends!
+Winner: o!!
 '''
 
 # The alpha-beta pruning minimax agent for the game.
 # Return the score of the state and the next move to take according to the agent.
 # An example of the next move: (1,2)
 def alpha_beta(game:TickTackToe,alpha,beta):
-    if game.is_end():
+    if game.is_end()[0]:
         return game.score(),None #If it's already terminal state, no need to move.
 
     legal_actions = game.get_legal_moves()
@@ -169,13 +181,52 @@ def alpha_beta(game:TickTackToe,alpha,beta):
 # The gaming main function:
 def gaming():
     print('This is a tick-tack-toe game, wanting to act first or second?')
-    print('type 1 to move first, 2 to move second.')
+    print('type 0 to move first, 1 to move second, 2 to appreciate a robot vs robot display.')
+    try:
+        mode = int(input('mode choice:'))
+        if mode != 0 and mode != 1 and mode != 2:
+            raise ValueError('Illegal game mode!')
+    except:
+        raise ValueError('Illegal game mode!')
+    value = [['-','-','-'],['-','-','-'],['-','-','-']]
+    game = TickTackToe(value)
+    print('Every time print the coordinate of your next move.')
+    print('For example: to place your move on point(1,2),')
+    print('You should type:"1,2"')
+    if mode == 2:
+        fun_watch()
+        return
+    while not game.is_end()[0]:
+        game.print_state()
+        if mode == game.agent_index : # It's the player's move!
+            decision_str = list(input('Your next move:'))
+            decision = []
+            for i in decision_str:
+                if i not in ', ':
+                    decision.append(int(i))
+        else: # It's computer's move!
+            print("Computer's move!")
+            a = float('-inf')
+            b = float('inf')
+            decision = alpha_beta(game,a,b)[1]
+        game = move(game,decision)
+    game.print_state()
     return
+
 
 # The robot vs robot:
 # Three modes to choose: Rational vs Rational(0); Rational vs random(1); random vs random(2).
-def fun_watch(mode_code: int):
-    if mode_code not in range(2):
-        raise ValueError('An invalid mode code!')
+def fun_watch():
+    print('This is a computer VS computer display.')
+    value = [['-', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]
+    game = TickTackToe(value)
+    while not game.is_end()[0]:
+        game.print_state()
+        a = float('-inf')
+        b = float('inf')
+        decision = alpha_beta(game, a, b)[1]
+        game = move(game,decision)
+    game.print_state()
     return
 
+gaming()
