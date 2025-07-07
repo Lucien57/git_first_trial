@@ -20,6 +20,21 @@ class TickTackToe:
         # and '-' means that the blank has not yet been occupied.
         if not judge_value(self.values):
             raise ValueError('Not an eligible value!')
+        o_count = 0
+        x_count = 0
+        for i in range(3):
+            for j in range(3):
+                match self.values[i][j]:
+                    case 'x':
+                        x_count += 1
+                    case 'o':
+                        o_count += 1
+        self.o_number = o_count
+        self.x_number = x_count
+        if self.o_number == self.x_number: self.agent_index = 0 # It's o turn.
+        elif self.o_number == self.x_number + 1: self.agent_index = 1 # It's x turn.
+        else:
+            raise ValueError('An invalid state!')
 
     # To judge whether the game ends.
     def is_end(self):
@@ -62,21 +77,17 @@ class TickTackToe:
                 case 0: print('A draw...')
         return
 
-    # To generate the possible states after the next move.
+    # To generate the possible moves.
     # 'o' moves first.
-    def generate_successor(self):
+    # Return a list of where the next move might be.
+    # No need to verify whether it is 'o' or 'x' as this is included in self.agent_index.
+    def get_legal_moves(self):
         if self.is_end(): return None
-        o_count = 0 ; x_count = 0
+        result = []
         for i in range(3):
             for j in range(3):
-                match self.values[i][j]:
-                    case 'x' : x_count += 1
-                    case 'o' : o_count += 1
-        if o_count == x_count or o_count == x_count + 1:
-            ...
-        else:
-            raise ValueError('Not a possible tick-tack-toe state!')
-        return None
+                if self.values[i][j] == '-': result.append([i,j])
+        return result
 
 # Test code for score assigning and the state printing.
 def score_print_test():
@@ -88,8 +99,8 @@ def score_print_test():
 
 # The alpha-beta pruning minimax agent for the game.
 # Return the score of the state and the next move to take according to the agent.
-# Agent index: 1 for 'o'; '-1' for 'x'.
-def alpha_beta(agent_index,game:TickTackToe,alpha,beta):
+# An example of the next move: (1,2)
+def alpha_beta(game:TickTackToe,alpha,beta):
     if game.is_end():
         return game.score(),None #If it's already terminal state, no need to move.
 
