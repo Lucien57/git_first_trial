@@ -47,10 +47,53 @@ class TickTackToe:
 
     # To print the current game state.
     def print_state(self):
+        print('The current gameboard:')
+        print(' %s | %s | %s ' % (self.values[0][0], self.values[0][1], self.values[0][2]))
+        print('---|---|---')
+        print(' %s | %s | %s ' % (self.values[1][0], self.values[1][1], self.values[1][2]))
+        print('---|---|---')
+        print(' %s | %s | %s ' % (self.values[2][0], self.values[2][1], self.values[2][2]))
+        if not self.is_end()[0]: print('Not ended yet...')
+        else:
+            print('The game ends!')
+            match self.is_end()[1]:
+                case 1: print('Winner: o!!')
+                case -1: print('Winner: x!!')
+                case 0: print('A draw...')
         return
 
+    # To generate the possible states after the next move.
+    # 'o' moves first.
+    def generate_successor(self):
+        if self.is_end(): return None
+        o_count = 0 ; x_count = 0
+        for i in range(3):
+            for j in range(3):
+                match self.values[i][j]:
+                    case 'x' : x_count += 1
+                    case 'o' : o_count += 1
+        if o_count == x_count or o_count == x_count + 1:
+            ...
+        else:
+            raise ValueError('Not a possible tick-tack-toe state!')
+        return None
+
+# Test code for score assigning and the state printing.
+def score_print_test():
+    state = [['x','x','o'],['-','o','x'],['o','x','o']]
+    game = TickTackToe(state)
+    game.print_state()
+
+#score_print_test()
+
 # The alpha-beta pruning minimax agent for the game.
-def alpha_beta(game:TickTackToe):
+# Return the score of the state and the next move to take according to the agent.
+# Agent index: 1 for 'o'; '-1' for 'x'.
+def alpha_beta(agent_index,game:TickTackToe,alpha,beta):
+    if game.is_end():
+        return game.score(),None #If it's already terminal state, no need to move.
+
+
     return
 
 # The gaming main function:
