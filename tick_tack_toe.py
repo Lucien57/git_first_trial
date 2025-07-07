@@ -47,7 +47,7 @@ class TickTackToe:
                 return True,1
             if self.values[0][column_index] == self.values[1][column_index] == self.values[2][column_index] == 'x':
                 return True,-1
-        if self.values[0][0] == self.values[1][1] == self.values[2][2] == 'o':return True,1
+        if self.values[0][0] == self.values[1][1] == self.values[2][2] == 'o': return True,1
         if self.values[0][0] == self.values[1][1] == self.values[2][2] == 'x': return True,-1
         if self.values[0][2] == self.values[1][1] == self.values[2][0] == 'o': return True, 1
         if self.values[0][2] == self.values[1][1] == self.values[2][0] == 'x': return True,-1
@@ -145,7 +145,7 @@ Winner: o!!
 # An example of the next move: (1,2)
 def alpha_beta(game:TickTackToe,alpha,beta):
     if game.is_end()[0]:
-        return game.score(),None #If it's already terminal state, no need to move.
+        return game.score(), None #If it's already terminal state, no need to move.
 
     legal_actions = game.get_legal_moves()
     if game.agent_index == 0: # It's o turn.Maximizer.
@@ -160,7 +160,7 @@ def alpha_beta(game:TickTackToe,alpha,beta):
             if v > beta:
                 return v, best_action
             alpha = max(alpha,v)
-        return v,best_action
+        return v, best_action
 
     elif game.agent_index == 1: # It's x turn.Maximizer.
         v = float('inf')
@@ -174,7 +174,7 @@ def alpha_beta(game:TickTackToe,alpha,beta):
             if v < alpha:
                 return v, best_action
             beta = min(beta,v)
-        return v,best_action
+        return v, best_action
 
     else: raise ValueError('Undefined game state!')
 
