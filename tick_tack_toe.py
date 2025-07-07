@@ -90,8 +90,6 @@ class TickTackToe:
                 if self.values[i][j] == '-': result.append([i,j])
         return result
 
-
-
 # Def a function, receiving a game: TickTackToe and a move(a point coordinate),
 # and return the next new_game: TickTackToe with the target point filled.
 def move(game:TickTackToe,decision:list)->TickTackToe:
@@ -141,12 +139,37 @@ def alpha_beta(game:TickTackToe,alpha,beta):
     if game.agent_index == 0: # It's o turn.Maximizer.
         v = float('-inf')
         best_action = None
-        for action in legal_actions:...
+        for action in legal_actions:
+            successor = move(game,action)
+            value,_ = alpha_beta(successor,alpha,beta)
+            if value > v:
+                v = value
+                best_action = action
+            if v > beta:
+                return v, best_action
+            alpha = max(alpha,v)
+        return v,best_action
 
-    return
+    elif game.agent_index == 1: # It's x turn.Maximizer.
+        v = float('inf')
+        best_action = None
+        for action in legal_actions:
+            successor = move(game,action)
+            value,_ = alpha_beta(successor,alpha,beta)
+            if value < v:
+                v = value
+                best_action = action
+            if v < alpha:
+                return v, best_action
+            beta = min(beta,v)
+        return v,best_action
+
+    else: raise ValueError('Undefined game state!')
 
 # The gaming main function:
 def gaming():
+    print('This is a tick-tack-toe game, wanting to act first or second?')
+    print('type 1 to move first, 2 to move second.')
     return
 
 # The robot vs robot:
