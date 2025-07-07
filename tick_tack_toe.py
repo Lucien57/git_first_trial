@@ -1,6 +1,7 @@
 # This program aims to write an agent for the tick-tack-toe game
 # using the minimax algorithm enhanced by alpha-beta pruning.
 
+import copy
 def judge_value(value)->bool:
     if len(value) != 3: return False
     for i in value:
@@ -82,20 +83,52 @@ class TickTackToe:
     # Return a list of where the next move might be.
     # No need to verify whether it is 'o' or 'x' as this is included in self.agent_index.
     def get_legal_moves(self):
-        if self.is_end(): return None
+        if self.is_end()[0]: return None
         result = []
         for i in range(3):
             for j in range(3):
                 if self.values[i][j] == '-': result.append([i,j])
         return result
 
+
+
+# Def a function, receiving a game: TickTackToe and a move(a point coordinate),
+# and return the next new_game: TickTackToe with the target point filled.
+def move(game:TickTackToe,decision:list)->TickTackToe:
+    result = copy.deepcopy(game)
+    x = decision[0]; y = decision[1]
+    if game.values[x][y] != '-':
+        raise ValueError('Illegal move!')
+    if game.agent_index == 0:
+        result.values[x][y] = 'o'
+    elif game.agent_index == 1:
+        result.values[x][y] = 'x'
+    else:
+        raise ValueError('Undefined game state!')
+    return result
+
 # Test code for score assigning and the state printing.
 def score_print_test():
-    state = [['x','x','o'],['-','o','x'],['o','x','o']]
+    state = [['x','x','-'],['-','o','-'],['o','x','o']]
     game = TickTackToe(state)
     game.print_state()
+    print(game.get_legal_moves()) # Test: get legal moves.
+    decision = [0,2]
+    new_game = move(game,decision)  # Test: generating a new game.
+    new_game.print_state()
 
-#score_print_test()
+score_print_test()
+'''
+The intended output:
+The current gameboard:
+ x | x | - 
+---|---|---
+ - | o | - 
+---|---|---
+ o | x | o 
+Not ended yet...
+[[0, 2], [1, 0], [1, 2]]
+'''
 
 # The alpha-beta pruning minimax agent for the game.
 # Return the score of the state and the next move to take according to the agent.
@@ -104,6 +137,11 @@ def alpha_beta(game:TickTackToe,alpha,beta):
     if game.is_end():
         return game.score(),None #If it's already terminal state, no need to move.
 
+    legal_actions = game.get_legal_moves()
+    if game.agent_index == 0: # It's o turn.Maximizer.
+        v = float('-inf')
+        best_action = None
+        for action in legal_actions:...
 
     return
 
