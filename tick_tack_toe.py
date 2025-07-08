@@ -233,49 +233,68 @@ The current gameboard:
 The game ends!
 Winner: o!!
 '''
+mem = {}
 
+def flat(vals):
+    return (item for sublist in vals for item in sublist)
 # The alpha-beta pruning minimax agent for the game.
 # Return the score of the state and the next move to take according to the agent.
 # An example of the next move: (1,2)
-def alpha_beta(game:TickTackToe,selfIndex,alpha,beta):
+def alpha_beta(game:TickTackToe,selfIndex,alpha,beta,depth:9999999):
     # game.print_state()
     # for pos in game.get_legal_moves():
     #     print(pos.__str__(),end=' ')
     # print('')
     # print(list(game.get_legal_moves()))
-    if game.checkIfEnd():
+    if game.checkIfEnd() or depth==0:
         score = game.score(selfIndex) #If it's already terminal state, no need to move.
         return score, None
+    
+    res = mem.get(flat(game.values))
+    if res is not None:
+        return res
 
     legal_actions = game.get_legal_moves()
     if game.agent_index == selfIndex: # It's o turn.Maximizer.
         v = float('-inf')
         best_action = None
+        # cnt =0
         for action in legal_actions:
+            # if depth==4:
+            #     print(f"{cnt}/{len(legal_actions)}")
+            #     cnt+=1
             game.move(Pos(action[0],action[1]))
-            value,_ = alpha_beta(game,selfIndex,alpha,beta)
+            value,_ = alpha_beta(game,selfIndex,alpha,beta,depth)
             game.undo()
             if value > v:
                 v = value
                 best_action = action
             if v > beta:
+                mem[flat(game.values)] = (v, best_action)
                 return v, best_action
             alpha = max(alpha,v)
+        mem[flat(game.values)] = (v, best_action)
         return v, best_action
 
     elif game.agent_index == 3 - selfIndex: # It's x turn.Minimizer.
         v = float('inf')
         best_action = None
+        # cnt =0
         for action in legal_actions:
+            # if depth==4:
+            #     print(f"{cnt}/{len(legal_actions)}")
+            #     cnt+=1
             game.move(Pos(action[0],action[1]))
-            value,_ = alpha_beta(game,selfIndex,alpha,beta)
+            value,_ = alpha_beta(game,selfIndex,alpha,beta,depth-1)
             game.undo()
             if value < v:
                 v = value
                 best_action = action
             if v < alpha:
+                mem[flat(game.values)] = (v, best_action)
                 return v, best_action
             beta = min(beta,v)
+        mem[flat(game.values)] = (v, best_action)
         return v, best_action
 
     else: raise ValueError('Undefined game state!')
@@ -285,7 +304,7 @@ def gaming():
     enableSetting = True
     def robotPolicy(player):
         print("I'm a robot. Let me contemplate what to do next!")
-        alphabetaResult = alpha_beta(game,player,float('-inf'),float('inf'))[1]
+        alphabetaResult = alpha_beta(game,player,float('-inf'),float('inf'),7)[1]
         return Pos(alphabetaResult[0],alphabetaResult[1])
     # robotPolicy = lambda game:
     def humanPolicy(player):
@@ -296,13 +315,14 @@ def gaming():
         except:
             print("Invalid Move!")
     def getPolicyForAlphaBetaTest(player):
-        return [humanPolicy,robotPolicy][player-1]
+        return [robotPolicy,humanPolicy][player-1]
     def getPolicyRR(player):
         return robotPolicy
     def getPolicyAllHuman(player):
         return humanPolicy
     _allhuman5x6Setting = {"mode":0,"height":5,"width":6,"targetK":4,"playerN":3,"getPolicy":getPolicyAllHuman}
     _tictactoeSetting = {"mode":0,"height":3,"width":4,"targetK":3,"playerN":2,"getPolicy":getPolicyForAlphaBetaTest}
+    _5inARow88 = {"mode":0,"height":6,"width":6,"targetK":5,"playerN":2,"getPolicy":getPolicyForAlphaBetaTest}
     # humanPolicy = lambda game:alpha_beta(game,float('-inf'),float('inf'))
     setting = _tictactoeSetting
     if enableSetting:
