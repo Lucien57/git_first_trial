@@ -1,6 +1,8 @@
 # This program aims to write an agent for the tick-tack-toe game
 # using the minimax algorithm enhanced by alpha-beta pruning.
-
+import sys
+sys.setrecursionlimit(1000)
+print(sys.getrecursionlimit())
 import copy
 def judge_value(value)->bool:
     if len(value) != 3: return False
@@ -30,6 +32,8 @@ class Pos:
         return self.x>=q.x and self.y>=q.y
     def __lt__(self, q):
         return self.x<q.x and self.y<q.y
+    def __hash__(self):
+        return hash((self.x,self.y))
     def copy(self):
         return Pos(self.x, self.y)
 
@@ -56,7 +60,7 @@ class TickTackToe:
         # self.lastPos = Pos(-1,-1)
         self.posRemaining = set()
         for i in range(m):
-            self.posRemaining.update([Pos(i,j) for j in range(n)])
+            self.posRemaining.update([(i,j) for j in range(n)])
         self.agent_index = 1
         self.history = []
         # 'values' should be a list of m lists, each of which is composed of
@@ -108,7 +112,9 @@ class TickTackToe:
 
     # To give a score to the game state.
     def score(self,player):
-        return self.checkSuccess()==player
+        if self.checkSuccess()==0:
+            return 0.5
+        return 1 if self.checkSuccess()==player else 0
 
     # To print the current game state.
     def print_state(self):
@@ -176,7 +182,8 @@ class TickTackToe:
         # self.values[x][y] = 'o' if self.agent_index == 0 else 'x'
         self.history.append((self.agent_index,pos))
         self.forwardAgentIndex()
-        self.posRemaining.remove(pos)
+        self.posRemaining.remove((pos.x,pos.y))
+        return True
         # self.agent_index = 1 - self.agent_index
     
     def undo(self):
@@ -184,7 +191,7 @@ class TickTackToe:
             self.backwardAgentIndex()
             # self.agent_index = 1 - self.agent_index
             player,pos = self.history.pop()
-            self.posRemaining.add(pos)
+            self.posRemaining.add((pos.x,pos.y))
             self.values[pos.x][pos.y] = 0
     
     def checkIfEnd(self):
@@ -230,17 +237,23 @@ Winner: o!!
 # The alpha-beta pruning minimax agent for the game.
 # Return the score of the state and the next move to take according to the agent.
 # An example of the next move: (1,2)
-def alpha_beta(game:TickTackToe,alpha,beta):
-    if game.is_end()[0]:
-        return game.score(), None #If it's already terminal state, no need to move.
+def alpha_beta(game:TickTackToe,selfIndex,alpha,beta):
+    # game.print_state()
+    # for pos in game.get_legal_moves():
+    #     print(pos.__str__(),end=' ')
+    # print('')
+    # print(list(game.get_legal_moves()))
+    if game.checkIfEnd():
+        score = game.score(selfIndex) #If it's already terminal state, no need to move.
+        return score, None
 
     legal_actions = game.get_legal_moves()
-    if game.agent_index == 0: # It's o turn.Maximizer.
+    if game.agent_index == selfIndex: # It's o turn.Maximizer.
         v = float('-inf')
         best_action = None
         for action in legal_actions:
-            game.move(action)
-            value,_ = alpha_beta(game,alpha,beta)
+            game.move(Pos(action[0],action[1]))
+            value,_ = alpha_beta(game,selfIndex,alpha,beta)
             game.undo()
             if value > v:
                 v = value
@@ -250,12 +263,12 @@ def alpha_beta(game:TickTackToe,alpha,beta):
             alpha = max(alpha,v)
         return v, best_action
 
-    elif game.agent_index == 1: # It's x turn.Maximizer.
+    elif game.agent_index == 3 - selfIndex: # It's x turn.Minimizer.
         v = float('inf')
         best_action = None
         for action in legal_actions:
-            game.move(action)
-            value,_ = alpha_beta(game,alpha,beta)
+            game.move(Pos(action[0],action[1]))
+            value,_ = alpha_beta(game,selfIndex,alpha,beta)
             game.undo()
             if value < v:
                 v = value
@@ -270,7 +283,28 @@ def alpha_beta(game:TickTackToe,alpha,beta):
 # The gaming main function:
 def gaming():
     enableSetting = True
-    setting = {"mode":0,"height":5,"width":6,"targetK":4,"playerN":3}
+    def robotPolicy(player):
+        print("I'm a robot. Let me contemplate what to do next!")
+        alphabetaResult = alpha_beta(game,player,float('-inf'),float('inf'))[1]
+        return Pos(alphabetaResult[0],alphabetaResult[1])
+    # robotPolicy = lambda game:
+    def humanPolicy(player):
+        inputStr = input(f"Player {game.agent_index} ({game.s(game.agent_index)})'s move:")
+        try:
+            inputList = inputStr.split(',')
+            return Pos(int(inputList[0]),int(inputList[1]))
+        except:
+            print("Invalid Move!")
+    def getPolicyForAlphaBetaTest(player):
+        return [humanPolicy,robotPolicy][player-1]
+    def getPolicyRR(player):
+        return robotPolicy
+    def getPolicyAllHuman(player):
+        return humanPolicy
+    _allhuman5x6Setting = {"mode":0,"height":5,"width":6,"targetK":4,"playerN":3,"getPolicy":getPolicyAllHuman}
+    _tictactoeSetting = {"mode":0,"height":3,"width":4,"targetK":3,"playerN":2,"getPolicy":getPolicyForAlphaBetaTest}
+    # humanPolicy = lambda game:alpha_beta(game,float('-inf'),float('inf'))
+    setting = _tictactoeSetting
     if enableSetting:
         mode = setting["mode"]
         height = setting["height"]
@@ -305,16 +339,23 @@ def gaming():
         return
     while not game.checkIfEnd():
         game.print_state()
-        inputStr = input(f"Player {game.agent_index} ({game.s(game.agent_index)})'s move:")
+        print(f"It's player {game.agent_index}'s move:")
+        actionPos = setting["getPolicy"](game.agent_index)(game.agent_index)
         try:
-            inputList = inputStr.split(',')
-            # for i in decision_str:
-            #     if i not in ', ':
-            #         inputList.append(int(i))
-            if not game.move(Pos(int(inputList[0]),int(inputList[1]))):
+            if not game.move(actionPos):
                 print("Invalid Move!")
         except:
             print("Invalid Move!")
+        # inputStr = input(f"Player {game.agent_index} ({game.s(game.agent_index)})'s move:")
+        # try:
+        #     inputList = inputStr.split(',')
+        #     # for i in decision_str:
+        #     #     if i not in ', ':
+        #     #         inputList.append(int(i))
+        #     if not game.move(Pos(int(inputList[0]),int(inputList[1]))):
+        #         print("Invalid Move!")
+        # except:
+        #     print("Invalid Move!")
         # if mode == game.agent_index : # It's the player's move!
         #     decision_str = list(input('Your next move:'))
         #     decision = []
