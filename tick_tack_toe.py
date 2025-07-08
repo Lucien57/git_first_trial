@@ -36,6 +36,7 @@ class TickTackToe:
         elif self.o_number == self.x_number + 1: self.agent_index = 1 # It's x turn.
         else:
             raise ValueError('An invalid state!')
+        self.history = []
 
     # To judge whether the game ends.
     def is_end(self):
@@ -90,21 +91,23 @@ class TickTackToe:
             for j in range(3):
                 if self.values[i][j] == '-': result.append([i,j])
         return result
+    
+    def move(self,decision:tuple):
+        x,y = decision
+        if self.values[x][y] != '-':
+            return False
+        self.values[x][y] = 'o' if self.agent_index == 0 else 'x'
+        self.history.append(decision)
+        self.agent_index = 1 - self.agent_index
+    
+    def undo(self):
+        if len(self.history)!=0:
+            self.agent_index = 1 - self.agent_index
+            x,y = self.history.pop()
+            self.values[x][y] = '-'
 
 # Def a function, receiving a game: TickTackToe and a move(a point coordinate),
 # and return the next new_game: TickTackToe with the target point filled.
-def move(game:TickTackToe,decision:list)->TickTackToe:
-    new_values = copy.deepcopy(game.values)
-    x = decision[0]; y = decision[1]
-    if game.values[x][y] != '-':
-        raise ValueError('Illegal move!')
-    if game.agent_index == 0:
-        new_values[x][y] = 'o'
-    elif game.agent_index == 1:
-        new_values[x][y] = 'x'
-    else:
-        raise ValueError('Undefined game state!')
-    return TickTackToe(new_values)
 
 # Ahh create a new object!!
 
@@ -114,9 +117,9 @@ def score_print_test():
     game = TickTackToe(state)
     game.print_state()
     print('Legal moves:',game.get_legal_moves()) # Test: get legal moves.
-    decision = [0,2]
-    new_game = move(game,decision)  # Test: generating a new game.
-    new_game.print_state()
+    decision = (0,2)
+    game.move(decision)
+    game.print_state()
 
 # score_print_test()
 '''
@@ -152,8 +155,9 @@ def alpha_beta(game:TickTackToe,alpha,beta):
         v = float('-inf')
         best_action = None
         for action in legal_actions:
-            successor = move(game,action)
-            value,_ = alpha_beta(successor,alpha,beta)
+            game.move(action)
+            value,_ = alpha_beta(game,alpha,beta)
+            game.undo()
             if value > v:
                 v = value
                 best_action = action
@@ -166,8 +170,9 @@ def alpha_beta(game:TickTackToe,alpha,beta):
         v = float('inf')
         best_action = None
         for action in legal_actions:
-            successor = move(game,action)
-            value,_ = alpha_beta(successor,alpha,beta)
+            game.move(action)
+            value,_ = alpha_beta(game,alpha,beta)
+            game.undo()
             if value < v:
                 v = value
                 best_action = action
@@ -209,7 +214,7 @@ def gaming():
             a = float('-inf')
             b = float('inf')
             decision = alpha_beta(game,a,b)[1]
-        game = move(game,decision)
+        game.move(decision)
     game.print_state()
     return
 
@@ -225,7 +230,7 @@ def fun_watch():
         a = float('-inf')
         b = float('inf')
         decision = alpha_beta(game, a, b)[1]
-        game = move(game,decision)
+        game.move(decision)
     game.print_state()
     return
 
